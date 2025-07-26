@@ -9,10 +9,10 @@ import (
 )
 
 type TierCalculator struct {
-	storage *TierStorage
+	storage TierStorageInterface
 }
 
-func NewTierCalculator(storage *TierStorage) *TierCalculator {
+func NewTierCalculator(storage TierStorageInterface) *TierCalculator {
 	return &TierCalculator{storage: storage}
 }
 

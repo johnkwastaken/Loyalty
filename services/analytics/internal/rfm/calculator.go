@@ -12,10 +12,10 @@ import (
 )
 
 type RFMCalculator struct {
-	storage *RFMStorage
+	storage RFMStorageInterface
 }
 
-func NewRFMCalculator(storage *RFMStorage) *RFMCalculator {
+func NewRFMCalculator(storage RFMStorageInterface) *RFMCalculator {
 	return &RFMCalculator{storage: storage}
 }
 

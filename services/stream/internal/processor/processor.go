@@ -14,8 +14,8 @@ import (
 )
 
 type EventProcessor struct {
-	ledgerClient     *clients.LedgerClient
-	membershipClient *clients.MembershipClient
+	ledgerClient     clients.LedgerClientInterface
+	membershipClient clients.MembershipClientInterface
 }
 
 func NewEventProcessor(ledgerURL, membershipURL string) *EventProcessor {

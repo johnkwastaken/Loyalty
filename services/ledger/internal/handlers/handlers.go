@@ -9,10 +9,10 @@ import (
 )
 
 type LedgerHandler struct {
-	repo *repository.MockTigerBeetleRepo
+	repo repository.TigerBeetleRepoInterface
 }
 
-func NewLedgerHandler(repo *repository.MockTigerBeetleRepo) *LedgerHandler {
+func NewLedgerHandler(repo repository.TigerBeetleRepoInterface) *LedgerHandler {
 	return &LedgerHandler{repo: repo}
 }
 

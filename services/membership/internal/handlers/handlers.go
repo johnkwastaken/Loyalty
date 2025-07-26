@@ -11,10 +11,10 @@ import (
 )
 
 type MembershipHandler struct {
-	repo *repository.MongoRepo
+	repo repository.MongoRepoInterface
 }
 
-func NewMembershipHandler(repo *repository.MongoRepo) *MembershipHandler {
+func NewMembershipHandler(repo repository.MongoRepoInterface) *MembershipHandler {
 	return &MembershipHandler{repo: repo}
 }
 
