@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # Database services
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongodb_data:/data/db
+
+  # TigerBeetle (commented out - using mock for now)
+  # tigerbeetle:
+  #   image: tigerbeetle/tigerbeetle:latest
+  #   ports:
+  #     - "8000:8000"
+  #   command: ["run", "replica", "--address", "0.0.0.0:8000", "--disk", "/data/tb-data"]
+  #   volumes:
+  #     - tigerbeetle_data:/data
+
+  # Redis for caching and simple queuing
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # Application services
+  ledger:
+    build:
+      context: ./services/ledger
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=redis://redis:6379
+
+  membership:
+    build:
+      context: ./services/membership
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      - MONGO_URL=mongodb://admin:password@mongodb:27017/loyalty?authSource=admin
+      - REDIS_URL=redis://redis:6379
+
+  stream:
+    build:
+      context: ./services/stream
+      dockerfile: Dockerfile
+    depends_on:
+      - ledger
+      - membership
+      - redis
+    environment:
+      - KAFKA_BROKERS=${KAFKA_BROKERS:-localhost:9092}
+      - LEDGER_URL=http://ledger:8001
+      - MEMBERSHIP_URL=http://membership:8002
+      - REDIS_URL=redis://redis:6379
+
+  # Analytics services
+  rfm-processor:
+    build:
+      context: ./services/analytics
+      dockerfile: Dockerfile
+    command: ["./rfm-processor"]
+    depends_on:
+      - mongodb
+    environment:
+      - KAFKA_BROKERS=${KAFKA_BROKERS:-localhost:9092}
+      - MONGO_URL=mongodb://admin:password@mongodb:27017/analytics?authSource=admin
+      - CONSUMER_GROUP_ID=rfm-processor
+
+  tier-processor:
+    build:
+      context: ./services/analytics
+      dockerfile: Dockerfile
+    command: ["./tier-processor"]
+    depends_on:
+      - mongodb
+    environment:
+      - KAFKA_BROKERS=${KAFKA_BROKERS:-localhost:9092}
+      - MONGO_URL=mongodb://admin:password@mongodb:27017/analytics?authSource=admin
+      - CONSUMER_GROUP_ID=tier-processor
+
+volumes:
+  mongodb_data:
+  redis_data:
